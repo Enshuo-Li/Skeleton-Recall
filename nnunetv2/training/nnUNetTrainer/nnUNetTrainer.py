@@ -1181,7 +1181,9 @@ class nnUNetTrainer(object):
             self.initialize()
 
         if isinstance(filename_or_checkpoint, str):
-            checkpoint = torch.load(filename_or_checkpoint, map_location=self.device)
+            # PyTorch 2.6 版本把torch.load里的weights_only默认值从False改成了True，这使得加载旧的检查点文件时，因为存在未被允许的全局变量而失败。
+            # 因而需要手动指定weights_only=False
+            checkpoint = torch.load(filename_or_checkpoint, map_location=self.device, weights_only=False)
         # if state dict comes from nn.DataParallel but we use non-parallel model here then the state dict keys do not
         # match. Use heuristic to make it match
         new_state_dict = {}

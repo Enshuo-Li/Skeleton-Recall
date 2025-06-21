@@ -9,7 +9,23 @@ class SoftDiceLoss(nn.Module):
     def __init__(self, apply_nonlin: Callable = None, batch_dice: bool = False, do_bg: bool = True, smooth: float = 1.,
                  ddp: bool = True, clip_tp: float = None):
         """
+        Args:
+            apply_nonlin (Callable, optional): 应用于网络输出的非线性激活函数，如 softmax/sigmoid
+            batch_dice (bool, optional): 是否使用batch维度计算Dice：
+                - True: 整个batch作为统计单元
+                - False: 逐样本计算后平均
+            do_bg (bool, optional): 是否包含背景类计算：
+                - True: 包含背景类
+                - False: 仅计算前景类
+            smooth (float, optional): 平滑系数，防止分母为零，默认1.0
+            ddp (bool, optional): 分布式训练标志：
+                - True: 使用AllGatherGrad跨设备聚合梯度
+                - False: 单设备训练模式
+            clip_tp (float, optional): 真阳性值截断阈值：
+                - 设置时：确保TP不低于该值（防止过小TP导致数值不稳定）
+                - None: 不进行截断操作
         """
+
         super(SoftDiceLoss, self).__init__()
 
         self.do_bg = do_bg
@@ -38,7 +54,7 @@ class SoftDiceLoss(nn.Module):
             fn = AllGatherGrad.apply(fn).sum(0)
 
         if self.clip_tp is not None:
-            tp = torch.clip(tp, min=self.clip_tp , max=None)
+            tp = torch.clip(tp, min=self.clip_tp, max=None)
 
         nominator = 2 * tp
         denominator = 2 * tp + fp + fn
