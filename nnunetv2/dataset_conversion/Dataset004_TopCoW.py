@@ -30,9 +30,9 @@ def convert_mha_to_nrrd(mha_file_path, nrrd_file_path):
     # 将读取的图像转换为NRRD格式并保存
     sitk.WriteImage(image, nrrd_file_path)
 
-def convert_AortaSeg24(AortaSeg24_base_dir: str = r'/home/med_bci/data/datasets/AortaSeg24/',
-                       nnunet_dataset_id: int = 3,
-                       task_name: str = "AortaSeg24"):
+def convert_TopCoW(TopCoW_base_dir: str = r'/home/public_workspace/workspace/ES_Li/data/TopCoW2024_Data_Release/',
+                   nnunet_dataset_id: int = 4,
+                   task_name: str = "TopCoW"):
 
     foldername = "Dataset%03.0d_%s" % (nnunet_dataset_id, task_name)
 
@@ -44,17 +44,24 @@ def convert_AortaSeg24(AortaSeg24_base_dir: str = r'/home/med_bci/data/datasets/
     maybe_mkdir_p(labelstr)
 
     ##########################下面代码需要修改###########################
-    cases = subfiles(os.path.join(AortaSeg24_base_dir, 'images/'), suffix='_CTA.mha', join=False)
-    for case in tqdm(cases):
-        case_label = case.replace('_CTA', '_label')
-        case_id = int(case.split('_')[0][-3:])
+    cases = subfiles(os.path.join(TopCoW_base_dir, 'imagesTr/'), prefix='topcow_ct_', suffix='.nii.gz', join=False)
+    for case_ct in tqdm(cases):
+        case_mr = case_ct.replace('topcow_ct_', 'topcow_mr_')
+        case_ct_label = case_ct.replace('_0000.nii.gz', '.nii.gz')
+        case_mr_label = case_mr.replace('_0000.nii.gz', '.nii.gz')
+        case_id = int(case_ct.split('_')[2])
 
-        convert_mha_to_nrrd(join(AortaSeg24_base_dir, 'images', case),
-                            join(imagestr, f'{task_name}_{case_id:03d}_0000.nii.gz'))
-        convert_mha_to_nrrd(join(AortaSeg24_base_dir, 'masks', case_label),
-                            join(labelstr, f'{task_name}_{case_id:03d}.nii.gz'))
+        shutil.copy2(join(TopCoW_base_dir, 'imagesTr', case_ct),
+                     join(imagestr, f'{task_name}_{case_id:03d}_0000.nii.gz'))
+        shutil.copy2(join(TopCoW_base_dir, 'cow_seg_labelsTr', case_ct_label),
+                     join(labelstr, f'{task_name}_{case_id:03d}_0000.nii.gz'))
+        shutil.copy2(join(TopCoW_base_dir, 'imagesTr', case_mr),
+                     join(imagestr, f'{task_name}_{case_id:03d}_0001.nii.gz'))
+        shutil.copy2(join(TopCoW_base_dir, 'cow_seg_labelsTr', case_mr_label),
+                     join(labelstr, f'{task_name}_{case_id:03d}_0001.nii.gz'))
 
-    generate_dataset_json(out_base, {0: "CT"},  # CTA -> CT
+
+    generate_dataset_json(out_base, {0: "CT", 1: "MRI"},  # CTA -> CT
                           labels={
                               "background": 0,
                               "Zone_0": 1,
@@ -90,7 +97,8 @@ def convert_AortaSeg24(AortaSeg24_base_dir: str = r'/home/med_bci/data/datasets/
 
 #%%
 if __name__ == '__main__':
-    convert_AortaSeg24(AortaSeg24_base_dir=r"/home/public_workspace/workspace/ES_Li/data/AortaSeg24/")
+    # convert_TopCoW(TopCoW_base_dir=r"/home/public_workspace/workspace/ES_Li/data/AortaSeg24/")
+    convert_TopCoW(TopCoW_base_dir=r"E:\LES\data\TopCoW2024_Data_Release")
 
 # ImageTBAD_path = r'/home/med_bci/lienshuo/data/ImageTBAD/'
 # nnunet_raw_path = r'/home/med_bci/lienshuo/nnUNet_raw/Dataset001_ImageTBAD/'

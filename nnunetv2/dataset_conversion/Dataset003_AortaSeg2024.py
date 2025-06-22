@@ -90,7 +90,8 @@ def convert_AortaSeg24(AortaSeg24_base_dir: str = r'/home/med_bci/data/datasets/
 
 #%%
 if __name__ == '__main__':
-    convert_AortaSeg24(AortaSeg24_base_dir=r"/home/public_workspace/workspace/ES_Li/data/AortaSeg24/")
+    # convert_AortaSeg24(AortaSeg24_base_dir=r"/home/public_workspace/workspace/ES_Li/data/AortaSeg24/")
+    convert_AortaSeg24(AortaSeg24_base_dir=r"E:\LES\data\AortaSeg24")
 
 # ImageTBAD_path = r'/home/med_bci/lienshuo/data/ImageTBAD/'
 # nnunet_raw_path = r'/home/med_bci/lienshuo/nnUNet_raw/Dataset001_ImageTBAD/'
